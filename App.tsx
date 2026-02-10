@@ -266,7 +266,7 @@ ${data.jobDescription.substring(0, 500)}${data.jobDescription.length > 500 ? '..
                   required
                 />
                 {isCalendarOpen && (
-                  <div className="absolute z-20 top-full left-0 right-0 mt-2 animate-fadeIn">
+                  <div className="absolute z-50 bottom-full left-0 right-0 mb-4 animate-fadeIn">
                     <Calendar
                       label=""
                       value={formData.deadline}
