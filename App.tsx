@@ -368,9 +368,9 @@ ${data.jobDescription.substring(0, 500)}${data.jobDescription.length > 500 ? '..
           </div>
 
           {/* Main Card */}
-          <div className="flex flex-col bg-white/70 backdrop-blur-[40px] rounded-[2rem] md:rounded-[3rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] border border-white/40 overflow-hidden animate-scaleIn">
+          <div className="flex flex-col bg-white/70 backdrop-blur-[40px] rounded-[2rem] md:rounded-[3rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.08)] border border-white/40 animate-scaleIn">
             {/* Form Header */}
-            <div className="px-8 md:px-12 py-6 md:py-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-0 bg-white/40 backdrop-blur-md border-b border-white/20">
+            <div className="px-8 md:px-12 py-6 md:py-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-0 bg-white/40 backdrop-blur-md border-b border-white/20 rounded-t-[2rem] md:rounded-t-[3rem]">
               <div>
                 <div className="flex items-center gap-3 mb-6 md:mb-8 group cursor-default">
                   <img src={BrandLogo} alt="Afriwork" className="h-10 md:h-12 w-auto object-contain transition-transform group-hover:scale-105" />
@@ -388,7 +388,7 @@ ${data.jobDescription.substring(0, 500)}${data.jobDescription.length > 500 ? '..
             </form>
 
             {/* Form Footer */}
-            <div className="px-8 md:px-12 py-6 md:py-8 bg-white/40 backdrop-blur-md border-t border-white/20 flex flex-col md:flex-row justify-between items-center gap-6 md:gap-0">
+            <div className="px-8 md:px-12 py-6 md:py-8 bg-white/40 backdrop-blur-md border-t border-white/20 flex flex-col md:flex-row justify-between items-center gap-6 md:gap-0 rounded-b-[2rem] md:rounded-b-[3rem]">
               <button
                 type="button" onClick={prevStep} disabled={currentStep === 1}
                 className={`text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-3 transition-all active:scale-90 ${currentStep === 1 ? 'opacity-0 pointer-events-none' : 'text-gray-400 hover:text-black'}`}
