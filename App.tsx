@@ -8,6 +8,7 @@ import {
 } from './types';
 import { INITIAL_FORM_STATE, STEPS } from './constants';
 import { Input, TextArea, Select, RadioGroup, Calendar } from './components/FormElements';
+import BrandLogo from './assets/Logo.png';
 
 // CONFIG: Using import.meta.env is required for local Vite development.
 const CONFIG = {
@@ -350,15 +351,15 @@ ${data.jobDescription.substring(0, 500)}${data.jobDescription.length > 500 ? '..
                 <div key={step.id} className="flex flex-col items-center group">
                   <div
                     className={`w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-[1.25rem] flex items-center justify-center transition-all duration-700 shadow-sm border-2 ${isActive
-                      ? 'bg-black border-black text-white scale-110 shadow-lg'
+                      ? 'bg-[#75216A] border-[#75216A] text-white scale-110 shadow-lg'
                       : isCompleted
-                        ? 'bg-black border-black text-white px-2'
+                        ? 'bg-[#75216A] border-[#75216A] text-white px-2'
                         : 'bg-white/80 backdrop-blur-md border-white text-gray-300'
                       }`}
                   >
                     <i className={`fa-solid ${isCompleted ? 'fa-check' : step.icon} ${isActive ? 'text-sm md:text-base' : 'text-xs md:text-sm'}`}></i>
                   </div>
-                  <span className={`mt-3 md:mt-4 text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-500 ${isActive ? 'text-black opacity-100' : 'text-gray-400 opacity-50'}`}>
+                  <span className={`mt-3 md:mt-4 text-[8px] md:text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-500 ${isActive ? 'text-[#75216A] opacity-100' : 'text-gray-400 opacity-50'}`}>
                     {step.title.split(' ')[0]}
                   </span>
                 </div>
@@ -371,11 +372,8 @@ ${data.jobDescription.substring(0, 500)}${data.jobDescription.length > 500 ? '..
             {/* Form Header */}
             <div className="px-8 md:px-12 py-6 md:py-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-0 bg-white/40 backdrop-blur-md border-b border-white/20">
               <div>
-                <div className="flex items-center gap-2 mb-2 group cursor-default">
-                  <div className="w-6 h-6 bg-black rounded-lg flex items-center justify-center transition-transform group-hover:rotate-12">
-                    <div className="w-2.5 h-[1.5px] bg-white rounded-full"></div>
-                  </div>
-                  <span className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-black transition-colors">afriwork</span>
+                <div className="flex items-center gap-3 mb-6 md:mb-8 group cursor-default">
+                  <img src={BrandLogo} alt="Afriwork" className="h-10 md:h-12 w-auto object-contain transition-transform group-hover:scale-105" />
                 </div>
                 <h2 className="text-xl md:text-2xl font-black tracking-tight text-[#0D0D12]">{STEPS[currentStep - 1].title}</h2>
               </div>
@@ -407,7 +405,7 @@ ${data.jobDescription.substring(0, 500)}${data.jobDescription.length > 500 ? '..
                 <button
                   type="button" onClick={currentStep === STEPS.length ? handleSubmit : nextStep}
                   disabled={isSyncing}
-                  className="w-full md:w-auto px-12 md:px-16 py-4 md:py-5 bg-[#0D0D12] text-white rounded-2xl md:rounded-[1.5rem] text-[10px] md:text-xs font-black uppercase tracking-[0.3em] hover:bg-black transition-all shadow-xl active:scale-95 disabled:opacity-50 disabled:cursor-wait relative overflow-hidden group"
+                  className="w-full md:w-auto px-12 md:px-16 py-4 md:py-5 bg-[#75216A] text-white rounded-2xl md:rounded-[1.5rem] text-[10px] md:text-xs font-black uppercase tracking-[0.3em] hover:opacity-90 transition-all shadow-xl active:scale-95 disabled:opacity-50 disabled:cursor-wait relative overflow-hidden group"
                 >
                   <span className="relative z-10">{isSyncing ? 'Syncing...' : (currentStep === STEPS.length ? 'Finalize' : 'Continue')}</span>
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>

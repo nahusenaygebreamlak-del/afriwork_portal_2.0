@@ -15,7 +15,7 @@ export const Input: React.FC<InputProps> = ({ label, error, required, ...props }
     <div className="relative group/field">
       <input
         {...props}
-        className={`w-full px-5 py-3.5 border border-gray-200/60 rounded-xl md:rounded-2xl bg-white/50 backdrop-blur-sm shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] focus:shadow-[0_8px_30px_rgba(0,0,0,0.04)] focus:border-[#0D0D12] focus:bg-white outline-none transition-all font-semibold text-sm md:text-base placeholder:text-gray-400 ${error ? 'border-red-400 bg-red-50/10' : 'hover:border-gray-300'
+        className={`w-full px-5 py-3.5 border border-gray-200/60 rounded-xl md:rounded-2xl bg-white/50 backdrop-blur-sm shadow-[0_2px_10px_-4px_rgba(0,0,0,0.02)] focus:shadow-[0_8px_30px_rgba(0,0,0,0.04)] focus:border-[#75216A] focus:bg-white outline-none transition-all font-semibold text-sm md:text-base placeholder:text-gray-400 ${error ? 'border-red-400 bg-red-50/10' : 'hover:border-gray-300'
           }`}
       />
       <div className={`absolute inset-0 rounded-[1.5rem] border-2 border-black/5 opacity-0 pointer-events-none group-focus-within:opacity-100 transition-opacity`}></div>
@@ -39,7 +39,7 @@ export const TextArea: React.FC<TextAreaProps> = ({ label, error, required, rows
       <textarea
         {...props}
         rows={rows}
-        className={`w-full px-5 md:px-6 py-4 md:py-5 border border-gray-200/60 rounded-[1.5rem] md:rounded-[2rem] bg-white/50 backdrop-blur-sm shadow-[0_4px_20px_-5px_rgba(0,0,0,0.03)] focus:shadow-[0_8px_40px_rgba(0,0,0,0.06)] focus:border-[#0D0D12] focus:bg-white outline-none transition-all resize-none font-semibold text-sm md:text-base leading-relaxed placeholder:text-gray-400 ${error ? 'border-red-400 bg-red-50/10' : 'hover:border-gray-300'
+        className={`w-full px-5 md:px-6 py-4 md:py-5 border border-gray-200/60 rounded-[1.5rem] md:rounded-[2rem] bg-white/50 backdrop-blur-sm shadow-[0_4px_20px_-5px_rgba(0,0,0,0.03)] focus:shadow-[0_8px_40px_rgba(0,0,0,0.06)] focus:border-[#75216A] focus:bg-white outline-none transition-all resize-none font-semibold text-sm md:text-base leading-relaxed placeholder:text-gray-400 ${error ? 'border-red-400 bg-red-50/10' : 'hover:border-gray-300'
           }`}
       />
     </div>
@@ -62,7 +62,7 @@ export const Select: React.FC<{
     <div className="relative group/field">
       <select
         {...props}
-        className="w-full px-5 py-3.5 border border-gray-200/60 bg-white/50 backdrop-blur-sm rounded-xl md:rounded-2xl shadow-sm focus:border-[#0D0D12] focus:bg-white outline-none appearance-none font-semibold text-sm md:text-base cursor-pointer hover:border-gray-300 transition-all text-[#0D0D12]"
+        className="w-full px-5 py-3.5 border border-gray-200/60 bg-white/50 backdrop-blur-sm rounded-xl md:rounded-2xl shadow-sm focus:border-[#75216A] focus:bg-white outline-none appearance-none font-semibold text-sm md:text-base cursor-pointer hover:border-gray-300 transition-all text-[#0D0D12]"
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
@@ -97,7 +97,7 @@ export const RadioGroup: React.FC<{
             type="button"
             onClick={() => onChange(opt.value)}
             className={`px-6 md:px-10 py-3 md:py-3.5 rounded-full border text-[11px] md:text-sm font-black transition-all shadow-sm active:scale-95 ${isSelected
-              ? 'bg-[#0D0D12] border-[#0D0D12] text-white shadow-[0_10px_30px_rgba(0,0,0,0.15)]'
+              ? 'bg-[#75216A] border-[#75216A] text-white shadow-[0_10px_30px_rgba(117,33,106,0.2)]'
               : 'bg-white border-gray-100 text-gray-400 hover:border-gray-300 hover:text-gray-600'
               }`}
           >
@@ -179,7 +179,7 @@ export const Calendar: React.FC<{
                 disabled={past}
                 onClick={() => handleDateClick(day)}
                 className={`aspect-square text-[12px] font-black rounded-xl flex items-center justify-center transition-all active:scale-95 ${selected
-                  ? 'bg-black text-white shadow-xl scale-110'
+                  ? 'bg-[#75216A] text-white shadow-xl scale-110'
                   : past
                     ? 'text-gray-200 cursor-not-allowed'
                     : 'text-gray-500 hover:bg-gray-50 hover:text-black'
