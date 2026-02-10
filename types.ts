@@ -26,6 +26,17 @@ export enum JobSite {
   REMOTE = 'Remote'
 }
 
+export enum EducationLevel {
+  MASTERS = 'Masters Degree',
+  NOT_REQUIRED = 'Not Required',
+  TVET = 'Tvet',
+  SECONDARY = 'Secondary School',
+  CERTIFICATE = 'Certificate',
+  DIPLOMA = 'Diploma',
+  BACHELORS = 'Bachelors Degree',
+  PHD = 'Phd',
+}
+
 export interface FormData {
   email: string;
   companyName: string;
@@ -35,6 +46,7 @@ export interface FormData {
   jobSite: JobSite;
   experienceLevel: ExperienceLevel;
   employmentType: EmploymentType;
+  educationLevel: EducationLevel;
   salaryRange: SalaryRange;
   deadline: string;
   contactPhone: string;

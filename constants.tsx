@@ -1,5 +1,5 @@
 
-import { FormData, ExperienceLevel, EmploymentType, SalaryRange, JobSite } from './types';
+import { FormData, ExperienceLevel, EmploymentType, SalaryRange, JobSite, EducationLevel } from './types';
 
 export const INITIAL_FORM_STATE: FormData = {
   email: '',
@@ -10,6 +10,7 @@ export const INITIAL_FORM_STATE: FormData = {
   jobSite: JobSite.ON_SITE,
   experienceLevel: ExperienceLevel.JUNIOR,
   employmentType: EmploymentType.FULL_TIME,
+  educationLevel: EducationLevel.NOT_REQUIRED,
   salaryRange: SalaryRange.NEGOTIABLE,
   deadline: '',
   contactPhone: '',

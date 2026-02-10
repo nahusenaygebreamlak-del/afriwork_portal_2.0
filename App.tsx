@@ -4,7 +4,8 @@ import {
   ExperienceLevel,
   EmploymentType,
   SalaryRange,
-  JobSite
+  JobSite,
+  EducationLevel
 } from './types';
 import { INITIAL_FORM_STATE, STEPS } from './constants';
 import { Input, TextArea, Select, RadioGroup, Calendar } from './components/FormElements';
@@ -75,6 +76,7 @@ const App: React.FC = () => {
       }
 
       if (!formData.workLocation) newErrors.workLocation = 'Location is required';
+      if (!formData.educationLevel) newErrors.educationLevel = 'Education background is required';
     }
 
     setErrors(newErrors);
@@ -114,6 +116,7 @@ const App: React.FC = () => {
 *Phone:* ${data.contactPhone}
 
 *Location:* ${data.workLocation} (${data.jobSite})
+*Education:* ${data.educationLevel}
 *Experience:* ${data.experienceLevel}
 *Salary:* ${data.salaryRange}
 *Deadline:* ${data.deadline || 'Not set'}
@@ -159,6 +162,7 @@ ${data.jobDescription.substring(0, 500)}${data.jobDescription.length > 500 ? '..
             experience_level: formData.experienceLevel,
             salary_range: formData.salaryRange,
             contact_phone: formData.contactPhone,
+            education_level: formData.educationLevel,
             deadline: formData.deadline || null
           })
         });
@@ -252,6 +256,10 @@ ${data.jobDescription.substring(0, 500)}${data.jobDescription.length > 500 ? '..
                 <Select
                   label="Salary Budget" name="salaryRange" value={formData.salaryRange} onChange={handleInputChange}
                   options={Object.values(SalaryRange).map(v => ({ label: v, value: v }))} required
+                />
+                <Select
+                  label="Education BG" name="educationLevel" value={formData.educationLevel} onChange={handleInputChange}
+                  options={Object.values(EducationLevel).map(v => ({ label: v, value: v }))} required
                 />
               </div>
               <div className="relative" ref={calendarRef}>
