@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   FormData,
+  JobDetails,
+  CompanyInfo,
   ExperienceLevel,
   EmploymentType,
   SalaryRange,
   JobSite,
   EducationLevel
 } from './types';
-import { INITIAL_FORM_STATE, STEPS } from './constants';
+import { INITIAL_FORM_STATE, INITIAL_JOB_STATE, STEPS } from './constants';
 import { Input, TextArea, Select, RadioGroup, Calendar } from './components/FormElements';
+import { JobForm } from './components/JobForm';
 import BrandLogo from './assets/Logo.png';
 
 // CONFIG: Using import.meta.env is required for local Vite development.
@@ -23,69 +26,54 @@ const CONFIG = {
 const App: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(INITIAL_FORM_STATE);
+  const [editingJob, setEditingJob] = useState<JobDetails | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const calendarRef = useRef<HTMLDivElement>(null);
 
-  // Handle outside click to close calendar
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (calendarRef.current && !calendarRef.current.contains(event.target as Node)) {
-        setIsCalendarOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const validateStep = (step: number): boolean => {
+  const validateCompanyInfo = (): boolean => {
     const newErrors: Record<string, string> = {};
-
-    if (step === 1) {
-      if (!formData.email) {
-        newErrors.email = 'Email is required';
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        newErrors.email = 'Please enter a valid business email';
-      }
-      if (!formData.companyName) newErrors.companyName = 'Company name is required';
-      if (!formData.jobTitle) newErrors.jobTitle = 'Job title is required';
+    if (!formData.company.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.company.email)) {
+      newErrors.email = 'Please enter a valid business email';
     }
-
-    if (step === 2) {
-      if (!formData.jobDescription) newErrors.jobDescription = 'Please provide a job description';
-    }
-
-    if (step === 3) {
-      if (!formData.contactPhone) {
-        newErrors.contactPhone = 'Phone number is required';
-      } else if (!/^\+?[0-9]{10,14}$/.test(formData.contactPhone.replace(/\s/g, ''))) {
-        newErrors.contactPhone = 'Enter a valid phone number (e.g. +251 911...)';
-      }
-
-      if (!formData.deadline) {
-        newErrors.deadline = 'Submission deadline is required';
-      } else {
-        const selectedDate = new Date(formData.deadline);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        if (selectedDate < today) {
-          newErrors.deadline = 'Deadline cannot be in the past';
-        }
-      }
-
-      if (!formData.workLocation) newErrors.workLocation = 'Location is required';
-      if (!formData.educationLevel) newErrors.educationLevel = 'Education background is required';
+    if (!formData.company.companyName) newErrors.companyName = 'Company name is required';
+    if (!formData.company.contactPhone) {
+      newErrors.contactPhone = 'Phone number is required';
+    } else if (!/^\+?[0-9]{10,14}$/.test(formData.company.contactPhone.replace(/\s/g, ''))) {
+      newErrors.contactPhone = 'Enter a valid phone number';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const validateJob = (job: JobDetails): boolean => {
+    const newErrors: Record<string, string> = {};
+    if (!job.jobTitle) newErrors.jobTitle = 'Job title is required';
+    if (!job.personnelCount) newErrors.personnelCount = 'Headcount is required';
+    if (!job.jobDescription) newErrors.jobDescription = 'Job description is required';
+    if (!job.workLocation) newErrors.workLocation = 'Location is required';
+    if (!job.deadline) {
+      newErrors.deadline = 'Submission deadline is required';
+    } else {
+      const selectedDate = new Date(job.deadline);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (selectedDate < today) newErrors.deadline = 'Deadline cannot be in the past';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleCompanyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => ({
+      ...prev,
+      company: { ...prev.company, [name]: value }
+    }));
     if (errors[name]) {
       setErrors(prev => {
         const updated = { ...prev };
@@ -95,34 +83,61 @@ const App: React.FC = () => {
     }
   };
 
-  const handleRadioChange = (name: string, value: string) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleAddJob = () => {
+    setEditingJob({ ...INITIAL_JOB_STATE, id: Date.now().toString() });
+    setErrors({});
+  };
+
+  const handleEditJob = (job: JobDetails) => {
+    setEditingJob(job);
+    setErrors({});
+  };
+
+  const handleSaveJob = () => {
+    if (editingJob && validateJob(editingJob)) {
+      setFormData(prev => {
+        const existingIndex = prev.jobs.findIndex(j => j.id === editingJob.id);
+        if (existingIndex >= 0) {
+          const updatedJobs = [...prev.jobs];
+          updatedJobs[existingIndex] = editingJob;
+          return { ...prev, jobs: updatedJobs };
+        } else {
+          return { ...prev, jobs: [...prev.jobs, editingJob] };
+        }
+      });
+      setEditingJob(null);
+    }
+  };
+
+  const handleDeleteJob = (id: string) => {
+    setFormData(prev => ({ ...prev, jobs: prev.jobs.filter(j => j.id !== id) }));
   };
 
   const nextStep = () => {
-    if (validateStep(currentStep)) {
-      setCurrentStep(prev => Math.min(prev + 1, STEPS.length));
+    if (currentStep === 1) {
+      if (validateCompanyInfo()) setCurrentStep(2);
     }
   };
 
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
-  const formatTelegramMessage = (data: FormData) => {
+  const formatTelegramMessage = (job: JobDetails, company: CompanyInfo) => {
     return `🚀 *New Recruitment Request*
 
-*Company:* ${data.companyName}
-*Job Title:* ${data.jobTitle}
-*Email:* ${data.email}
-*Phone:* ${data.contactPhone}
+*Company:* ${company.companyName}
+*Job Title:* ${job.jobTitle}
+*Email:* ${company.email}
+*Phone:* ${company.contactPhone}
 
-*Location:* ${data.workLocation} (${data.jobSite})
-*Education:* ${data.educationLevel}
-*Experience:* ${data.experienceLevel}
-*Salary:* ${data.salaryRange}
-*Deadline:* ${data.deadline || 'Not set'}
+*Location:* ${job.workLocation} (${job.jobSite})
+*Education:* ${job.educationLevel}
+*Experience:* ${job.experienceLevel}
+*Salary:* ${job.salaryRange}
+*Headcount:* ${job.personnelCount}
+*Deadline:* ${job.deadline || 'Not set'}
 
 *Description:*
-${data.jobDescription.substring(0, 500)}${data.jobDescription.length > 500 ? '...' : ''}
+${job.jobDescription.substring(0, 500)}${job.jobDescription.length > 500 ? '...' : ''}
 
 #Afriwork #Recruitment #Hiring`;
   };
@@ -134,80 +149,95 @@ ${data.jobDescription.substring(0, 500)}${data.jobDescription.length > 500 ? '..
 
   const handleSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
     if (e && 'preventDefault' in e) e.preventDefault();
-    if (!validateStep(currentStep)) return;
+
+    // Final check: must have at least one job
+    if (formData.jobs.length === 0) {
+      setErrors({ submit: 'Please add at least one job position.' });
+      return;
+    }
 
     setIsSyncing(true);
     setSyncStatus({ supabase: 'idle', telegram: 'idle' });
 
-    // 1. Supabase Sync
-    const syncSupabase = async () => {
-      if (!CONFIG.SUPABASE_URL || !CONFIG.SUPABASE_KEY) return 'idle';
+    let supabaseSuccessCount = 0;
+    let telegramSuccessCount = 0;
+    let errorsCount = 0;
+
+    for (const job of formData.jobs) {
+      // 1. Supabase Sync
       try {
-        const supabaseEndpoint = `${CONFIG.SUPABASE_URL}/rest/v1/${CONFIG.SUPABASE_TABLE}`;
-        const response = await fetch(supabaseEndpoint, {
-          method: 'POST',
-          headers: {
-            'apikey': CONFIG.SUPABASE_KEY,
-            'Authorization': `Bearer ${CONFIG.SUPABASE_KEY}`,
-            'Content-Type': 'application/json',
-            'Prefer': 'return=minimal'
-          },
-          body: JSON.stringify({
-            email: formData.email,
-            company_name: formData.companyName,
-            job_title: formData.jobTitle,
-            job_description: formData.jobDescription,
-            work_location: formData.workLocation,
-            job_site: formData.jobSite,
-            experience_level: formData.experienceLevel,
-            salary_range: formData.salaryRange,
-            contact_phone: formData.contactPhone,
-            education_level: formData.educationLevel,
-            deadline: formData.deadline || null
-          })
-        });
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return 'success';
+        if (CONFIG.SUPABASE_URL && CONFIG.SUPABASE_KEY) {
+          const supabaseEndpoint = `${CONFIG.SUPABASE_URL}/rest/v1/${CONFIG.SUPABASE_TABLE}`;
+          const response = await fetch(supabaseEndpoint, {
+            method: 'POST',
+            headers: {
+              'apikey': CONFIG.SUPABASE_KEY,
+              'Authorization': `Bearer ${CONFIG.SUPABASE_KEY}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({
+              email: formData.company.email,
+              company_name: formData.company.companyName,
+              contact_phone: formData.company.contactPhone,
+              job_title: job.jobTitle,
+              job_description: job.jobDescription,
+              work_location: job.workLocation,
+              job_site: job.jobSite,
+              experience_level: job.experienceLevel,
+              salary_range: job.salaryRange,
+              education_level: job.educationLevel,
+              personnel_count: job.personnelCount,
+              deadline: job.deadline || null
+            })
+          });
+          if (response.ok) supabaseSuccessCount++;
+          else {
+            console.error("Supabase Error for job:", job.jobTitle, response.status);
+            errorsCount++;
+          }
+        } else {
+          // If skipped, count as pseudo-success for UI flow
+          supabaseSuccessCount++;
+        }
       } catch (err) {
-        console.error("Supabase Sync Error:", err);
-        return 'error';
+        console.error("Supabase Exception:", err);
+        errorsCount++;
       }
-    };
 
-    // 2. Telegram Sync
-    const syncTelegram = async () => {
-      if (!CONFIG.TELEGRAM_TOKEN || !CONFIG.TELEGRAM_CHAT_ID) return 'idle';
+      // 2. Telegram Sync
       try {
-        const telegramUrl = `https://api.telegram.org/bot${CONFIG.TELEGRAM_TOKEN}/sendMessage`;
-        const response = await fetch(telegramUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: CONFIG.TELEGRAM_CHAT_ID,
-            text: formatTelegramMessage(formData),
-            parse_mode: 'Markdown'
-          })
-        });
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        return 'success';
+        if (CONFIG.TELEGRAM_TOKEN && CONFIG.TELEGRAM_CHAT_ID) {
+          const telegramUrl = `https://api.telegram.org/bot${CONFIG.TELEGRAM_TOKEN}/sendMessage`;
+          const response = await fetch(telegramUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: CONFIG.TELEGRAM_CHAT_ID,
+              text: formatTelegramMessage(job, formData.company),
+              parse_mode: 'Markdown'
+            })
+          });
+          if (response.ok) telegramSuccessCount++;
+          else errorsCount++;
+        } else {
+          telegramSuccessCount++;
+        }
       } catch (err) {
-        console.error("Telegram Sync Error:", err);
-        return 'error';
+        console.error("Telegram Exception:", err);
+        errorsCount++;
       }
-    };
+    }
 
-    const [supabaseResult, telegramResult] = await Promise.all([
-      syncSupabase(),
-      syncTelegram()
-    ]);
+    // Determine final status
+    const finalSupabaseStatus = supabaseSuccessCount === formData.jobs.length ? 'success' : (supabaseSuccessCount > 0 ? 'success' : 'error'); // lenient
+    const finalTelegramStatus = telegramSuccessCount === formData.jobs.length ? 'success' : (telegramSuccessCount > 0 ? 'success' : 'error');
 
-    setSyncStatus({ supabase: supabaseResult as any, telegram: telegramResult as any });
+    setSyncStatus({ supabase: finalSupabaseStatus, telegram: finalTelegramStatus });
     setIsSyncing(false);
 
-    // If at least one succeeded OR both were skipped (no config), consider it "sent"
-    // If both return error, show an error state instead of success screen
-    if (supabaseResult === 'error' && telegramResult === 'error') {
-      setErrors({ submit: 'We encountered an error while saving your request. Please try again or contact support.' });
+    if (errorsCount === formData.jobs.length * 2) {
+      setErrors({ submit: 'Failed to submit any jobs. Please try again.' });
     } else {
       setSubmitted(true);
     }
@@ -218,82 +248,80 @@ ${data.jobDescription.substring(0, 500)}${data.jobDescription.length > 500 ? '..
       case 1:
         return (
           <div className="space-y-8 animate-fadeIn">
-            <h3 className="text-2xl md:text-3xl font-extrabold text-[#0D0D12] tracking-tight mb-8">Base Information</h3>
-            <Input label="Business Email" name="email" type="email" value={formData.email} error={errors.email} onChange={handleInputChange} required placeholder="hello@company.com" />
-            <Input label="Company Name" name="companyName" value={formData.companyName} error={errors.companyName} onChange={handleInputChange} required placeholder="Legal entity name" />
-            <Input label="Job Title" name="jobTitle" value={formData.jobTitle} error={errors.jobTitle} onChange={handleInputChange} required placeholder="e.g. Senior Visual Designer" />
+            <h3 className="text-2xl md:text-3xl font-extrabold text-[#0D0D12] tracking-tight mb-8">Company Information</h3>
+            <Input label="Company Name" name="companyName" value={formData.company.companyName} error={errors.companyName} onChange={handleCompanyChange} required placeholder="Legal entity name" />
+            <Input label="Business Email" name="email" type="email" value={formData.company.email} error={errors.email} onChange={handleCompanyChange} required placeholder="hello@company.com" />
+            <Input label="Contact Phone" name="contactPhone" type="tel" value={formData.company.contactPhone} error={errors.contactPhone} onChange={handleCompanyChange} required placeholder="+251 911 223344" />
           </div>
         );
       case 2:
-        return (
-          <div className="space-y-8 animate-fadeIn">
-            <h3 className="text-2xl md:text-3xl font-extrabold text-[#0D0D12] tracking-tight mb-8">Role Details</h3>
-            <TextArea
-              label="Job Description" name="jobDescription" value={formData.jobDescription} error={errors.jobDescription} onChange={handleInputChange}
-              required rows={12} placeholder="Explain the responsibilities, expectations, and goals for this position..."
+        if (editingJob) {
+          return (
+            <JobForm
+              job={editingJob}
+              onChange={setEditingJob}
+              onSave={handleSaveJob}
+              onCancel={() => setEditingJob(null)}
+              errors={errors}
             />
-          </div>
-        );
-      case 3:
+          );
+        }
+
         return (
           <div className="space-y-8 animate-fadeIn">
-            <h3 className="text-2xl md:text-3xl font-extrabold text-[#0D0D12] tracking-tight mb-8">Logistics</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Input label="Location" name="workLocation" value={formData.workLocation} error={errors.workLocation} onChange={handleInputChange} required placeholder="Addis Ababa" />
-              <Input label="Contact Phone" name="contactPhone" type="tel" value={formData.contactPhone} error={errors.contactPhone} onChange={handleInputChange} required placeholder="+251 911 223344" />
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h3 className="text-2xl md:text-3xl font-extrabold text-[#0D0D12] tracking-tight">Job Positions</h3>
+                <p className="text-gray-500 font-medium text-sm mt-1">Add one or more roles to recruit for.</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleAddJob}
+                className="px-6 py-3 bg-[#0D0D12] text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-gray-800 transition-all shadow-lg active:scale-95 flex items-center gap-2"
+              >
+                <i className="fa-solid fa-plus"></i> Add Position
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-              <div className="space-y-6">
-                <Select
-                  label="Seniority" name="experienceLevel" value={formData.experienceLevel} onChange={handleInputChange}
-                  options={Object.values(ExperienceLevel).map(v => ({ label: v, value: v }))} required
-                />
-                <RadioGroup
-                  label="Work Style" options={[{ label: 'On-Site', value: JobSite.ON_SITE }, { label: 'Remote', value: JobSite.REMOTE }]}
-                  value={formData.jobSite} onChange={(val) => handleRadioChange('jobSite', val)} required
-                />
-                <Select
-                  label="Salary Budget" name="salaryRange" value={formData.salaryRange} onChange={handleInputChange}
-                  options={Object.values(SalaryRange).map(v => ({ label: v, value: v }))} required
-                />
-                <Select
-                  label="Education BG" name="educationLevel" value={formData.educationLevel} onChange={handleInputChange}
-                  options={Object.values(EducationLevel).map(v => ({ label: v, value: v }))} required
-                />
+            {formData.jobs.length === 0 ? (
+              <div className="p-10 border-2 border-dashed border-gray-200 rounded-3xl flex flex-col items-center justify-center text-center group hover:border-gray-300 transition-colors">
+                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 group-hover:bg-gray-100 transition-colors">
+                  <i className="fa-solid fa-briefcase text-gray-300 text-xl group-hover:text-gray-400"></i>
+                </div>
+                <h4 className="text-lg font-bold text-[#0D0D12] mb-1">No positions added yet</h4>
+                <p className="text-gray-400 text-sm">Click the button above to start hiring.</p>
               </div>
-              <div className="relative" ref={calendarRef}>
-                <Input
-                  label="Deadline"
-                  name="deadline"
-                  value={formData.deadline || "Select a date..."}
-                  error={errors.deadline}
-                  readOnly
-                  onClick={() => setIsCalendarOpen(!isCalendarOpen)}
-                  style={{ cursor: 'pointer' }}
-                  required
-                />
-                {isCalendarOpen && (
-                  <div className="absolute z-50 bottom-full left-0 right-0 mb-4 animate-fadeIn">
-                    <Calendar
-                      label=""
-                      value={formData.deadline}
-                      onChange={(date) => {
-                        setFormData(prev => ({ ...prev, deadline: date }));
-                        setIsCalendarOpen(false);
-                        if (errors.deadline) {
-                          setErrors(prev => {
-                            const updated = { ...prev };
-                            delete updated.deadline;
-                            return updated;
-                          });
-                        }
-                      }}
-                    />
+            ) : (
+              <div className="space-y-4">
+                {formData.jobs.map((job, index) => (
+                  <div key={job.id} className="p-6 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-all flex justify-between items-center group">
+                    <div>
+                      <h4 className="text-lg font-bold text-[#0D0D12] mb-1">{job.jobTitle}</h4>
+                      <div className="flex gap-4 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                        <span className="flex items-center gap-1"><i className="fa-solid fa-location-dot"></i> {job.workLocation}</span>
+                        <span className="flex items-center gap-1"><i className="fa-solid fa-clock"></i> {job.employmentType}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        type="button"
+                        onClick={() => handleEditJob(job)}
+                        className="w-10 h-10 rounded-xl bg-gray-50 text-gray-600 hover:bg-gray-100 flex items-center justify-center transition-colors"
+                      >
+                        <i className="fa-solid fa-pen text-sm"></i>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteJob(job.id)}
+                        className="w-10 h-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors"
+                      >
+                        <i className="fa-solid fa-trash text-sm"></i>
+                      </button>
+                    </div>
                   </div>
-                )}
+                ))}
               </div>
-            </div>
+            )}
           </div>
         );
       default: return null;
@@ -309,7 +337,7 @@ ${data.jobDescription.substring(0, 500)}${data.jobDescription.length > 500 ? '..
           </div>
           <h2 className="text-5xl font-black text-[#0D0D12] tracking-tighter mb-6">Sent</h2>
           <p className="text-gray-600 text-lg font-medium mb-4 leading-relaxed tracking-tight">
-            We've received your request. <br /> A specialist will contact you soon.
+            We've received your {formData.jobs.length} request{formData.jobs.length > 1 ? 's' : ''}. <br /> A specialist will contact you soon.
           </p>
           <div className="flex flex-col items-center gap-2 mb-12">
             {syncStatus.supabase !== 'idle' && (
@@ -383,7 +411,7 @@ ${data.jobDescription.substring(0, 500)}${data.jobDescription.length > 500 ? '..
                 <div className="flex items-center gap-3 mb-6 md:mb-8 group cursor-default">
                   <img src={BrandLogo} alt="Afriwork" className="h-10 md:h-12 w-auto object-contain transition-transform group-hover:scale-105" />
                 </div>
-                <h2 className="text-xl md:text-2xl font-black tracking-tight text-[#0D0D12]">{STEPS[currentStep - 1].title}</h2>
+                {!editingJob && <h2 className="text-xl md:text-2xl font-black tracking-tight text-[#0D0D12]">{STEPS[currentStep - 1].title}</h2>}
               </div>
               <div className="text-[9px] font-black uppercase tracking-[0.2em] bg-white border border-gray-100 text-black px-4 py-2 rounded-xl shadow-sm text-center min-w-[100px]">
                 Step {currentStep} <span className="text-gray-300 mx-1">/</span> {STEPS.length}
@@ -391,35 +419,38 @@ ${data.jobDescription.substring(0, 500)}${data.jobDescription.length > 500 ? '..
             </div>
 
             {/* Form Content */}
-            <form onSubmit={handleSubmit} className="flex-1 px-8 md:px-16 py-10 md:py-12">
+            <form className="flex-1 px-8 md:px-16 py-10 md:py-12">
               {renderStep()}
             </form>
 
             {/* Form Footer */}
-            <div className="px-8 md:px-12 py-6 md:py-8 bg-white/40 backdrop-blur-md border-t border-white/20 flex flex-col md:flex-row justify-between items-center gap-6 md:gap-0 rounded-b-[2rem] md:rounded-b-[3rem]">
-              <button
-                type="button" onClick={prevStep} disabled={currentStep === 1}
-                className={`text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-3 transition-all active:scale-90 ${currentStep === 1 ? 'opacity-0 pointer-events-none' : 'text-gray-400 hover:text-black'}`}
-              >
-                <i className="fa-solid fa-arrow-left-long"></i> Back
-              </button>
-
-              <div className="flex flex-col items-center md:items-end gap-4 w-full md:w-auto">
-                {errors.submit && (
-                  <p className="text-[10px] text-red-500 font-bold animate-fadeIn text-center md:text-right">
-                    <i className="fa-solid fa-circle-exclamation mr-2"></i>{errors.submit}
-                  </p>
-                )}
+            {/* Hide footer when editing a job to strictly focus on the job form actions */}
+            {!editingJob && (
+              <div className="px-8 md:px-12 py-6 md:py-8 bg-white/40 backdrop-blur-md border-t border-white/20 flex flex-col md:flex-row justify-between items-center gap-6 md:gap-0 rounded-b-[2rem] md:rounded-b-[3rem]">
                 <button
-                  type="button" onClick={currentStep === STEPS.length ? handleSubmit : nextStep}
-                  disabled={isSyncing}
-                  className="w-full md:w-auto px-12 md:px-16 py-4 md:py-5 bg-[#75216A] text-white rounded-2xl md:rounded-[1.5rem] text-[10px] md:text-xs font-black uppercase tracking-[0.3em] hover:opacity-90 transition-all shadow-xl active:scale-95 disabled:opacity-50 disabled:cursor-wait relative overflow-hidden group"
+                  type="button" onClick={prevStep} disabled={currentStep === 1}
+                  className={`text-[10px] font-black uppercase tracking-[0.3em] flex items-center gap-3 transition-all active:scale-90 ${currentStep === 1 ? 'opacity-0 pointer-events-none' : 'text-gray-400 hover:text-black'}`}
                 >
-                  <span className="relative z-10">{isSyncing ? 'Syncing...' : (currentStep === STEPS.length ? 'Finalize' : 'Continue')}</span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  <i className="fa-solid fa-arrow-left-long"></i> Back
                 </button>
+
+                <div className="flex flex-col items-center md:items-end gap-4 w-full md:w-auto">
+                  {errors.submit && (
+                    <p className="text-[10px] text-red-500 font-bold animate-fadeIn text-center md:text-right">
+                      <i className="fa-solid fa-circle-exclamation mr-2"></i>{errors.submit}
+                    </p>
+                  )}
+                  <button
+                    type="button" onClick={currentStep === STEPS.length ? handleSubmit : nextStep}
+                    disabled={isSyncing}
+                    className="w-full md:w-auto px-12 md:px-16 py-4 md:py-5 bg-[#75216A] text-white rounded-2xl md:rounded-[1.5rem] text-[10px] md:text-xs font-black uppercase tracking-[0.3em] hover:opacity-90 transition-all shadow-xl active:scale-95 disabled:opacity-50 disabled:cursor-wait relative overflow-hidden group"
+                  >
+                    <span className="relative z-10">{isSyncing ? 'Syncing...' : (currentStep === STEPS.length ? 'Submit All' : 'Continue')}</span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Copyright */}

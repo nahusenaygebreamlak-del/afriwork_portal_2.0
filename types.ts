@@ -37,9 +37,8 @@ export enum EducationLevel {
   PHD = 'Phd',
 }
 
-export interface FormData {
-  email: string;
-  companyName: string;
+export interface JobDetails {
+  id: string; // Unique ID for UI management
   jobTitle: string;
   jobDescription: string;
   workLocation: string;
@@ -49,5 +48,16 @@ export interface FormData {
   educationLevel: EducationLevel;
   salaryRange: SalaryRange;
   deadline: string;
+  personnelCount: string;
+}
+
+export interface CompanyInfo {
+  email: string;
+  companyName: string;
   contactPhone: string;
+}
+
+export interface FormData {
+  company: CompanyInfo;
+  jobs: JobDetails[];
 }
