@@ -11,7 +11,7 @@ import {
 } from './types';
 import { INITIAL_FORM_STATE, INITIAL_JOB_STATE, STEPS } from './constants';
 import { Input, TextArea, Select, RadioGroup, Calendar } from './components/FormElements';
-import { JobForm } from './components/JobForm';
+import { JobForm } from './components/JobForm.tsx';
 import BrandLogo from './assets/Logo.png';
 
 // CONFIG: Using import.meta.env is required for local Vite development.
